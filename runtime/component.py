@@ -223,9 +223,7 @@ class Component(object):
     if self.config.privileged:
       report('Container will be run in privileged mode', component=self)
 
-    client.start(container, binds=self.config.getBindings(container['Id']),
-                 volumes_from=self.config.volumes_from,
-                 privileged=self.config.privileged)
+    client.start(container=container.get('Id'))
 
     # Health check until the instance is ready.
     report('Waiting for health checks...', component=self)
@@ -310,7 +308,20 @@ class Component(object):
     self.logger.debug('Starting container for component %s with command %s', self.getName(),
                       command)
                       
+    host_config = {
+        "privileged": self.config.privileged
+    }
+
+    if self.config.bindings:
+        host_config['binds'] = { b.external: { "bind": b.volume } for b in self.config.bindings }
+    
+    if self.config.volumes_from:
+        host_config['volumes_from'] = self.config.volumes_from
+    
+    host_config = client.create_host_config(**host_config)
+
     container = client.create_container(self.config.getFullImage(), command,
+                                        host_config=host_config,
                                         user=self.config.getUser(),
                                         volumes=self.config.getVolumes(),
                                         ports=[str(p) for p in self.config.getContainerPorts()],
