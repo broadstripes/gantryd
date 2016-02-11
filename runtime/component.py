@@ -317,6 +317,12 @@ class Component(object):
     
     if self.config.volumes_from:
         host_config['volumes_from'] = self.config.volumes_from
+
+    if self.config.restart_policy:
+      host_config['restart_policy'] = { 
+        "Name": self.config.restart_policy.name, 
+        "MaximumRetryCount": self.config.restart_policy.max_retry_count
+      }
     
     host_config = client.create_host_config(**host_config)
 
