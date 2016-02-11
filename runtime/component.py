@@ -327,6 +327,7 @@ class Component(object):
     host_config = client.create_host_config(**host_config)
 
     container = client.create_container(self.config.getFullImage(), command,
+                                        name='%s_%s' % (self.getName(), int(time.time())),
                                         host_config=host_config,
                                         user=self.config.getUser(),
                                         volumes=self.config.getVolumes(),
