@@ -15,6 +15,11 @@ class ContainerSignal(object):
     client = getDockerClient()
     return containerutil.getContainerIPAddress(client, container)
 
+  def getContainerExternalPort(self, container):
+    """ Returns the external port used for the ELB """
+    client = getDockerClient()
+    return containerutil.getContainerExternalPort(client, container)
+
 
 class TerminationSignal(ContainerSignal):
   """ Base class for all termination signals. """

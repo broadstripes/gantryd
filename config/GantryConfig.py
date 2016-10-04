@@ -9,6 +9,7 @@ class _HealthCheck(CFObject):
   id = CFField('id').default('').name_field()
   kind = CFField('kind').value_field()
   timeout = CFField('timeout').kind(int).default(3)
+  elb_target_group_arn = CFField('elbTargetGroupArn').default('')
 
   def __init__(self):
     super(_HealthCheck, self).__init__('Health Check')
@@ -124,6 +125,7 @@ class _Component(CFObject):
   required_component_links = CFField('requireComponentLinks').list_of(_RequiredComponentLink).default([])
   environment_variables = CFField('environmentVariables').list_of(_EnvironmentVariable).default([])
   restart_policy = CFField('restartPolicy').kind(_RestartPolicy).default({})
+  elb_target_group_arn = CFField('elbTargetGroupArn')
 
   connection_check = _HealthCheck().build({'kind': 'connection'})
   termination_checks = CFField('terminationChecks').list_of(_HealthCheck).default([connection_check])

@@ -2,6 +2,7 @@ from functools import partial
 
 from networkcheck import TcpCheck, HttpRequestCheck, IncomingConnectionCheck
 from termination import HttpTerminationSignal, ExecTerminationSignal
+from elbcheck import ELBCheck, ELBTerminateCheck
 from util import report, fail, getDockerClient
 
 # The list of registered health checks
@@ -9,6 +10,8 @@ HEALTH_CHECKS = {
   'tcp': TcpCheck,
   'http': partial(HttpRequestCheck, 'http'),
   'https': partial(HttpRequestCheck, 'https'),
+  'elb': ELBCheck,
+  'elb_terminate': ELBTerminateCheck,
   'connection': IncomingConnectionCheck,
 }
 

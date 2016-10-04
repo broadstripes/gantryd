@@ -4,6 +4,7 @@ from health.checks import buildHealthCheck
 from metadata import (getContainerStatus, setContainerStatus, removeContainerMetadata,
                       getContainerComponent, setContainerComponent)
 from util import report, fail, getDockerClient, ReportLevels
+from aws.elb import ELB
 
 import time
 import logging
@@ -21,6 +22,9 @@ class Component(object):
 
     # The underlying config for the component.
     self.config = config
+
+    # The manager for registering/deregistering targets in ELB
+    self.elb_manager = ELB(self.config.elb_target_group_arn)
     
   def applyConfigOverrides(self, config_overrides):
     """ Applies the list of configuration overrides to this component's config.
@@ -99,12 +103,8 @@ class Component(object):
     for existing in existing_containers:
       setContainerStatus(existing, 'draining')
 
-    # Update the port proxy to redirect the external ports to the new
-    # container.
-    report('Redirecting traffic to new container', component=self)
-    self.manager.adjustForUpdatingComponent(self, container)
-
     # Signal the existing primary container to terminate
+    self.elb_manager.deregisterContainer()
     if existing_primary is not None:
       self.manager.terminateContainer(existing_primary, self)
 
@@ -130,9 +130,6 @@ class Component(object):
         report('Killing container ' + container['Id'][:12], component=self)
         client.kill(container)
         removeContainerMetadata(container)
-
-    # Clear the proxy and rebuild its routes for the running components.
-    self.manager.adjustForStoppingComponent(self)
 
   def getContainerInformation(self):
     """ Returns the container status information for all containers. """
@@ -228,6 +225,8 @@ class Component(object):
     # Health check until the instance is ready.
     report('Waiting for health checks...', component=self)
 
+    self.elb_manager.registerContainer()
+
     # Start a health check thread to determine when the component is ready.
     timeout = self.config.getReadyCheckTimeout()
     readycheck_thread = Thread(target=self.readyCheck, args=[container, timeout])
@@ -246,7 +245,7 @@ class Component(object):
 
     # Otherwise, the container is ready. Set it as starting.
     setContainerComponent(container, self.getName())
-    setContainerStatus(container, 'starting')
+    setContainerStatus(container, 'running')
     return container
 
   def getAllContainers(self, client):
@@ -323,6 +322,9 @@ class Component(object):
         "Name": self.config.restart_policy.name, 
         "MaximumRetryCount": self.config.restart_policy.max_retry_count
       }
+
+    self.elb_manager.determinePortNumber()
+    host_config['port_bindings']  = dict([(80, self.elb_manager.newPort())])
     
     host_config = client.create_host_config(**host_config)
 
@@ -331,7 +333,7 @@ class Component(object):
                                         host_config=host_config,
                                         user=self.config.getUser(),
                                         volumes=self.config.getVolumes(),
-                                        ports=[str(p) for p in self.config.getContainerPorts()],
+                                        ports=['80'],
                                         environment=self.calculateEnvForComponent())
 
     return container
