@@ -30,6 +30,21 @@ class ELB(object):
       ]
     )
 
+  def deregisterAllContainers(self):
+    response = self.client.deregister_targets(
+      TargetGroupArn=self.target_group_arn,
+      Targets=[
+          {
+            'Id': self.instance_id,
+            'Port': 80
+          },
+          {
+            'Id': self.instance_id,
+            'Port': 81
+          },
+      ]
+    )
+
   def describeContainerHealth(self, target_port):
     response = self.client.describe_target_health(
       TargetGroupArn=self.target_group_arn,

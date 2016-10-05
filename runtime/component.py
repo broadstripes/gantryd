@@ -120,6 +120,7 @@ class Component(object):
 
     # Mark all the containers as draining.
     report('Draining all containers...', component=self)
+    self.elb_manager.deregisterAllContainers()
     for container in self.getAllContainers(client):
       setContainerStatus(container, 'draining')
       self.manager.terminateContainer(container, self)
