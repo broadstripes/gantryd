@@ -66,7 +66,12 @@ class ELB(object):
     elif self.describeContainerHealth(81) == 'unused':
       self.ports['new'] = 81
       self.ports['old'] = 80
-
+    elif self.describeContainerHealth(80) == 'unhealthy':
+      self.ports['new'] = 80
+      self.ports['old'] = 81
+    else:
+      self.ports['new'] = 81
+      self.ports['old'] = 80
   def oldPort(self):
     return self.ports['old']
 
