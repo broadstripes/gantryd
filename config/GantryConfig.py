@@ -118,6 +118,7 @@ class _Component(CFObject):
   volumes_from = CFField('volumesFrom').list_of(str).default([])
   ready_checks = CFField('readyChecks').list_of(_HealthCheck).default([])
   health_checks = CFField('healthChecks').list_of(_HealthCheck).default([])
+  elb_checks =  = CFField('elbChecks').list_of(_HealthCheck).default([])
   ready_timeout = CFField('readyTimeout').kind(int).default(10000)
   termination_signals = CFField('terminationSignals').list_of(_TerminationSignal).default([])
   privileged = CFField('privileged').kind(bool).default(False)

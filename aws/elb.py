@@ -1,5 +1,6 @@
 import boto3
 import urllib2
+from runtime.metadata import setContainerStatus
 
 class ELB(object):
   def __init__(self, target_group_arn):
@@ -8,6 +9,35 @@ class ELB(object):
     self.target_group_arn = target_group_arn
     self.ports = {}
   
+  def adjustForUpdatingComponent(self, component, started_container):
+    # Add container to target group in ELB
+    self.registerContainer(self)
+
+    # Now wait until all of the elb checks/conditions are met
+    checks = []
+    for check in component.config.elb_checks:
+      checks.append((check, buildHealthCheck(check)))
+
+    report('Waiting for %s elb checks' % len(checks), component=component)
+
+    for (config, check) in checks:
+      check_passed = False
+
+      while not check_passed:
+        report('Running elb check: ' + config.getTitle(), component=component)
+        result = check.run(container, report)
+        if not result:
+          report('Elb check failed', component=component)
+
+          report('Sleeping ' + str(config.timeout) + ' second(s)...', component=component)
+          time.sleep(config.timeout)
+        else:
+          check_passed = True
+
+    report('Elb check finished', level=ReportLevels.BACKGROUND)
+
+    setContainerStatus(started_container, 'running')
+
   def registerContainer(self):
     response = self.client.register_targets(
       TargetGroupArn=self.target_group_arn,

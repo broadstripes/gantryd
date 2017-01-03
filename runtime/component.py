@@ -103,6 +103,10 @@ class Component(object):
     for existing in existing_containers:
       setContainerStatus(existing, 'draining')
 
+    # Update the load blancer to start directing traffic to the new container.
+    report('Directing traffic to new container', component=self)
+    self.elb_manager.adjustForUpdatingComponent(self, container)
+
     # Signal the existing primary container to terminate
     self.elb_manager.deregisterContainer()
     if existing_primary is not None:
@@ -226,8 +230,6 @@ class Component(object):
     # Health check until the instance is ready.
     report('Waiting for health checks...', component=self)
 
-    self.elb_manager.registerContainer()
-
     # Start a health check thread to determine when the component is ready.
     timeout = self.config.getReadyCheckTimeout()
     readycheck_thread = Thread(target=self.readyCheck, args=[container, timeout])
@@ -246,7 +248,7 @@ class Component(object):
 
     # Otherwise, the container is ready. Set it as starting.
     setContainerComponent(container, self.getName())
-    setContainerStatus(container, 'running')
+    setContainerStatus(container, 'starting')
     return container
 
   def getAllContainers(self, client):
