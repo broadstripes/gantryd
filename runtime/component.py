@@ -4,7 +4,7 @@ from health.checks import buildHealthCheck
 from metadata import (getContainerStatus, setContainerStatus, removeContainerMetadata,
                       getContainerComponent, setContainerComponent)
 from util import report, fail, getDockerClient, ReportLevels
-from aws.elb import ELB
+from aws.elbmanager import ELBManager
 
 import time
 import logging
@@ -24,7 +24,7 @@ class Component(object):
     self.config = config
 
     # The manager for registering/deregistering targets in ELB
-    self.elb_manager = ELB(self.config.elb_target_group_arn)
+    self.elbManager = ELBManager(self.config.elb_target_group_arn)
     
   def applyConfigOverrides(self, config_overrides):
     """ Applies the list of configuration overrides to this component's config.
@@ -105,10 +105,10 @@ class Component(object):
 
     # Update the load blancer to start directing traffic to the new container.
     report('Directing traffic to new container', component=self)
-    self.elb_manager.adjustForUpdatingComponent(self, container)
+    self.elbManager.adjustForUpdatingComponent(self, container)
 
     # Signal the existing primary container to terminate
-    self.elb_manager.deregisterContainer()
+    self.elbManager.deregisterContainer()
     if existing_primary is not None:
       self.manager.terminateContainer(existing_primary, self)
 
@@ -124,7 +124,7 @@ class Component(object):
 
     # Mark all the containers as draining.
     report('Draining all containers...', component=self)
-    self.elb_manager.deregisterAllContainers()
+    self.elbManager.deregisterAllContainers()
     for container in self.getAllContainers(client):
       setContainerStatus(container, 'draining')
       self.manager.terminateContainer(container, self)
@@ -326,8 +326,8 @@ class Component(object):
         "MaximumRetryCount": self.config.restart_policy.max_retry_count
       }
 
-    self.elb_manager.determinePortNumber()
-    host_config['port_bindings']  = dict([(80, self.elb_manager.newPort())])
+    self.elbManager.determinePortNumber()
+    host_config['port_bindings']  = dict([(80, self.elbManager.newPort())])
     
     host_config = client.create_host_config(**host_config)
 
