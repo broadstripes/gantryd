@@ -1,4 +1,4 @@
-import ELB
+from elb import ELB
 from runtime.metadata import setContainerStatus
 from health.checks import buildHealthCheck
 
