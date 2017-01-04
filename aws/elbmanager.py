@@ -1,6 +1,7 @@
 from elb import ELB
 from runtime.metadata import setContainerStatus
 from health.checks import buildHealthCheck
+from util import report, ReportLevels
 
 class ELBManager(object):
   def __init__(self, target_group_arn):
