@@ -1,6 +1,7 @@
 import boto3
 import urllib2
 from runtime.metadata import setContainerStatus
+from health.checks import buildHealthCheck
 
 class ELB(object):
   def __init__(self, target_group_arn):
