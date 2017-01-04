@@ -111,6 +111,8 @@ class Component(object):
     self.elbManager.deregisterContainer()
     if existing_primary is not None:
       self.manager.terminateContainer(existing_primary, self)
+    else:
+      report('No primary container to terminate', component=self)
 
     return True
 
