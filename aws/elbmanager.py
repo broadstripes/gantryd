@@ -24,7 +24,7 @@ class ELBManager(object):
 
       while not check_passed:
         report('Running elb check: ' + config.getTitle(), component=component)
-        result = check.run(container, report)
+        result = check.run(started_container, report)
         if not result:
           report('Elb check failed', component=component)
 
