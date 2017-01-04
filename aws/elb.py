@@ -11,7 +11,7 @@ class ELB(object):
   
   def adjustForUpdatingComponent(self, component, started_container):
     # Add container to target group in ELB
-    self.registerContainer(self)
+    self.registerContainer()
 
     # Now wait until all of the elb checks/conditions are met
     checks = []
