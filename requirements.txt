@@ -5,3 +5,4 @@ jinja2
 python-etcd
 peewee
 boto3
+urllib3 >=1.21.1,<1.22
