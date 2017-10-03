@@ -339,6 +339,7 @@ class Component(object):
                                         user=self.config.getUser(),
                                         volumes=self.config.getVolumes(),
                                         ports=['80'],
+                                        mem_limit=self.config.memory_limit.limit,
                                         environment=self.calculateEnvForComponent())
 
     return container
