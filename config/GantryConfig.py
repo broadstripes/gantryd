@@ -106,13 +106,6 @@ class _RestartPolicy(CFObject):
   def __init__(self):
     super(_RestartPolicy, self).__init__('Restart Policy')
 
-class _MemoryLimit(CFObject):
-    """ A maximum amount of memory for the container """
-    limit = CFField('limit').kind(str).default('64g')
-    
-    def __init__(self):
-        super(_MemoryLimit, self).__init__('Memory Limit')
-
 class _Component(CFObject):
   """ A single gantry component. """
   name = CFField('name')
@@ -133,7 +126,7 @@ class _Component(CFObject):
   required_component_links = CFField('requireComponentLinks').list_of(_RequiredComponentLink).default([])
   environment_variables = CFField('environmentVariables').list_of(_EnvironmentVariable).default([])
   restart_policy = CFField('restartPolicy').kind(_RestartPolicy).default({})
-  memory_limit = CFField('memoryLimit').kind(_MemoryLimit).default("")
+  memory_limit = CFField('memoryLimit').kind(str).default('64g')
   elb_target_group_arn = CFField('elbTargetGroupArn')
 
   connection_check = _HealthCheck().build({'kind': 'connection'})

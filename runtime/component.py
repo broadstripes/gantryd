@@ -330,6 +330,8 @@ class Component(object):
 
     self.elbManager.determinePortNumber()
     host_config['port_bindings']  = dict([(80, self.elbManager.newPort())])
+
+    host_config['mem_limit'] = self.config.memory_limit
     
     host_config = client.create_host_config(**host_config)
 
@@ -339,7 +341,6 @@ class Component(object):
                                         user=self.config.getUser(),
                                         volumes=self.config.getVolumes(),
                                         ports=['80'],
-                                        mem_limit=self.config.memory_limit.limit,
                                         environment=self.calculateEnvForComponent())
 
     return container
