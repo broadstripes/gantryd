@@ -133,7 +133,7 @@ class _Component(CFObject):
   required_component_links = CFField('requireComponentLinks').list_of(_RequiredComponentLink).default([])
   environment_variables = CFField('environmentVariables').list_of(_EnvironmentVariable).default([])
   restart_policy = CFField('restartPolicy').kind(_RestartPolicy).default({})
-  memory_limit = CFField('memoryLimit').kind(_MemoryLimit).default({})
+  memory_limit = CFField('memoryLimit').kind(_MemoryLimit).default("")
   elb_target_group_arn = CFField('elbTargetGroupArn')
 
   connection_check = _HealthCheck().build({'kind': 'connection'})
